@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker Pro</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+       import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Check, Plus, Minus, Clock, Play, Pause, RotateCcw } from 'lucide-react';
+
+export default function GymTracker() {
+  const [week, setWeek] = useState(1);
+  const [day, setDay] = useState('lower1');
+  const [sets, setSets] = useState({});
+  const [weights, setWeights] = useState({});
+  const [chains, setChains] = useState({});
+  const [incline, setIncline] = useState({});
+  const [rpe, setRpe] = useState({});
+  const [notes, setNotes] = useState({});
+  const [open, setOpen] = useState(null);
+  const [timer, setTimer] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [targetRest, setTargetRest] = useState(120);
+
+  useEffect(() => {
+    let interval;
+    if (timerRunning) {
+      interval = setInterval(() => {
+        setTimer(t => t + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+
+  const data = {
+    lower1: [
+      { name: "Med Ball Toss", rest: 90, w: [{ s: 3, r: "6", wt: "—" }, { s: 3, r: "6", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "4", wt: "—" }, { s: 3, r: "5", wt: "—" }] },
+      { name: "High Box Step Up", rest: 90, w: [{ s: 3, r: "5/leg", wt: "BW" }, { s: 3, r: "6/leg", wt: "BW" }, { s: 4, r: "5/leg", wt: "BW+10" }, { s: 4, r: "5/leg", wt: "BW+15" }, { s: 4, r: "4/leg", wt: "BW+20" }, { s: 3, r: "6/leg", wt: "BW+10" }] },
+      { name: "TB Deadlift Chains", rest: 240, hasChains: true, w: [{ s: 4, r: "6", wt: "365+3ch" }, { s: 4, r: "6", wt: "375+3ch" }, { s: 5, r: "5", wt: "385+3ch" }, { s: 5, r: "4", wt: "395+3ch" }, { s: 5, r: "3", wt: "405+3ch" }, { s: 4, r: "3,1x5", wt: "410/380" }] },
+      { name: "ATG Split Squat", rest: 120, w: [{ s: 4, r: "8/leg", wt: "40" }, { s: 4, r: "10/leg", wt: "40" }, { s: 4, r: "8/leg", wt: "45" }, { s: 4, r: "8/leg", wt: "50" }, { s: 3, r: "10/leg", wt: "50" }, { s: 3, r: "8/leg", wt: "55" }] },
+      { name: "TIL Raise", rest: 90, w: [{ s: 3, r: "15", wt: "35" }, { s: 4, r: "15", wt: "35" }, { s: 4, r: "12", wt: "40" }, { s: 4, r: "12", wt: "42.5" }, { s: 3, r: "15", wt: "45" }, { s: 3, r: "12", wt: "47.5" }] },
+      { name: "Seated Calf Banded", rest: 60, w: [{ s: 3, r: "15", wt: "Purple" }, { s: 4, r: "15", wt: "Purple" }, { s: 4, r: "12", wt: "Purple+" }, { s: 4, r: "12", wt: "Blue" }, { s: 3, r: "15", wt: "Blue" }, { s: 3, r: "12", wt: "Blue+" }] },
+      { name: "BFR Squat", rest: 30, bfr: true, w: [{ s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }] }
+    ],
+    upper1: [
+      { name: "MB Chest Pass", rest: 90, w: [{ s: 3, r: "1", wt: "12" }, { s: 3, r: "1", wt: "12" }, { s: 4, r: "1", wt: "14" }, { s: 4, r: "1", wt: "14" }, { s: 4, r: "1", wt: "16" }, { s: 3, r: "1", wt: "16" }] },
+      { name: "Bench Press Chains", rest: 240, hasChains: true, w: [{ s: 4, r: "6", wt: "225+2ch" }, { s: 4, r: "6", wt: "230+2ch" }, { s: 5, r: "5", wt: "240+2ch" }, { s: 5, r: "4", wt: "250+2ch" }, { s: 5, r: "3", wt: "260+2ch" }, { s: 4, r: "3,1x5", wt: "265/240" }] },
+      { name: "Lat Pulldown", rest: 120, w: [{ s: 4, r: "8", wt: "170" }, { s: 4, r: "8", wt: "175" }, { s: 5, r: "6", wt: "185" }, { s: 5, r: "6", wt: "190" }, { s: 4, r: "8", wt: "195" }, { s: 4, r: "6", wt: "200" }] },
+      { name: "Vitruvian Rear Delt Fly", rest: 90, w: [{ s: 3, r: "10", wt: "3ea" }, { s: 3, r: "12", wt: "3ea" }, { s: 4, r: "8", wt: "4ea" }, { s: 4, r: "8", wt: "4ea" }, { s: 3, r: "10", wt: "5ea" }, { s: 3, r: "8", wt: "5ea" }] },
+      { name: "Jammer Press", rest: 90, w: [{ s: 3, r: "10", wt: "100" }, { s: 3, r: "12", wt: "100" }, { s: 4, r: "8", wt: "110" }, { s: 4, r: "8", wt: "115" }, { s: 3, r: "10", wt: "120" }, { s: 3, r: "8", wt: "125" }] },
+      { name: "Seated 1 Arm Row", rest: 90, w: [{ s: 3, r: "10", wt: "90" }, { s: 3, r: "12", wt: "90" }, { s: 4, r: "8", wt: "100" }, { s: 4, r: "8", wt: "105" }, { s: 3, r: "10", wt: "110" }, { s: 3, r: "8", wt: "115" }] },
+      { name: "Tall Kneeling Banded Chops", rest: 60, w: [{ s: 3, r: "12", wt: "—" }, { s: 3, r: "15", wt: "—" }, { s: 4, r: "10", wt: "—" }, { s: 4, r: "10", wt: "—" }, { s: 3, r: "12", wt: "—" }, { s: 3, r: "10", wt: "—" }] }
+    ],
+    lower2: [
+      { name: "MB Rotational Slam", rest: 90, w: [{ s: 3, r: "6/6", wt: "—" }, { s: 3, r: "6/6", wt: "—" }, { s: 4, r: "5/5", wt: "—" }, { s: 4, r: "5/5", wt: "—" }, { s: 4, r: "4/4", wt: "—" }, { s: 3, r: "5/5", wt: "—" }] },
+      { name: "Box Jump (Weight Vest)", rest: 90, w: [{ s: 3, r: "6", wt: "—" }, { s: 3, r: "6", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "4", wt: "—" }, { s: 3, r: "5", wt: "—" }] },
+      { name: "B Stance RDL", rest: 120, w: [{ s: 3, r: "8/leg", wt: "—" }, { s: 3, r: "10/leg", wt: "—" }, { s: 4, r: "8/leg", wt: "—" }, { s: 4, r: "8/leg", wt: "—" }, { s: 3, r: "10/leg", wt: "—" }, { s: 3, r: "8/leg", wt: "—" }] },
+      { name: "Banded Ankle Dorsiflexion", rest: 60, w: [{ s: 3, r: "10", wt: "—" }, { s: 3, r: "12", wt: "—" }, { s: 4, r: "8", wt: "—" }, { s: 4, r: "8", wt: "—" }, { s: 3, r: "10", wt: "—" }, { s: 3, r: "8", wt: "—" }] },
+      { name: "Box Squat", rest: 240, hasChains: true, w: [{ s: 4, r: "6", wt: "385+3ch" }, { s: 4, r: "6", wt: "395+3ch" }, { s: 5, r: "5", wt: "405+3ch" }, { s: 5, r: "4", wt: "415+3ch" }, { s: 5, r: "3", wt: "425+3ch" }, { s: 4, r: "3,1x5", wt: "430/400" }] },
+      { name: "Nordic", rest: 120, hasIncline: true, w: [{ s: 4, r: "8", wt: "0°" }, { s: 4, r: "10", wt: "0°" }, { s: 5, r: "6", wt: "5°" }, { s: 5, r: "6", wt: "10°" }, { s: 4, r: "8", wt: "15°" }, { s: 4, r: "6", wt: "20°" }] },
+      { name: "High Box Glute Bridge", rest: 90, w: [{ s: 4, r: "10/10", wt: "—" }, { s: 4, r: "12/12", wt: "—" }, { s: 5, r: "8/8", wt: "—" }, { s: 5, r: "8/8", wt: "—" }, { s: 4, r: "10/10", wt: "—" }, { s: 4, r: "8/8", wt: "—" }] },
+      { name: "Copenhagen Plank", rest: 60, w: [{ s: 3, r: "30s", wt: "—" }, { s: 3, r: "35s", wt: "—" }, { s: 4, r: "30s", wt: "—" }, { s: 4, r: "30s", wt: "—" }, { s: 3, r: "40s", wt: "—" }, { s: 3, r: "35s", wt: "—" }] },
+      { name: "Side Plank", rest: 60, w: [{ s: 3, r: "30s", wt: "—" }, { s: 3, r: "35s", wt: "—" }, { s: 4, r: "30s", wt: "—" }, { s: 4, r: "30s", wt: "—" }, { s: 3, r: "40s", wt: "—" }, { s: 3, r: "35s", wt: "—" }] },
+      { name: "BFR RFE5s", rest: 30, bfr: true, w: [{ s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }, { s: 4, r: "30,15,15,15", wt: "—" }] }
+    ],
+    upper2: [
+      { name: "MB Push Press", rest: 90, w: [{ s: 3, r: "6", wt: "—" }, { s: 3, r: "6", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "5", wt: "—" }, { s: 4, r: "4", wt: "—" }, { s: 3, r: "5", wt: "—" }] },
+      { name: "Incline Press", rest: 240, hasChains: true, w: [{ s: 4, r: "8", wt: "225" }, { s: 4, r: "8", wt: "230" }, { s: 5, r: "6", wt: "240" }, { s: 5, r: "5", wt: "250" }, { s: 5, r: "4", wt: "260" }, { s: 4, r: "4,1x6", wt: "265/240" }] },
+      { name: "Landmine Press", rest: 120, w: [{ s: 4, r: "8/arm", wt: "175" }, { s: 4, r: "10/arm", wt: "175" }, { s: 5, r: "6/arm", wt: "185" }, { s: 5, r: "6/arm", wt: "190" }, { s: 4, r: "8/arm", wt: "195" }, { s: 4, r: "6/arm", wt: "200" }] },
+      { name: "Chin Ups", rest: 180, w: [{ s: 4, r: "6", wt: "BW" }, { s: 4, r: "6", wt: "BW+5" }, { s: 5, r: "5", wt: "BW+10" }, { s: 5, r: "4", wt: "BW+15" }, { s: 5, r: "3", wt: "BW+20" }, { s: 4, r: "3,1x5", wt: "BW+25/10" }] },
+      { name: "1 Arm Lat Pulldown", rest: 90, w: [{ s: 4, r: "8", wt: "80" }, { s: 4, r: "10", wt: "80" }, { s: 5, r: "6", wt: "90" }, { s: 5, r: "6", wt: "95" }, { s: 4, r: "8", wt: "100" }, { s: 4, r: "6", wt: "105" }] },
+      { name: "Iron Neck Side Rotations", rest: 60, w: [{ s: 3, r: "10/10", wt: "—" }, { s: 3, r: "10/10", wt: "—" }, { s: 3, r: "12/12", wt: "—" }, { s: 3, r: "12/12", wt: "—" }, { s: 3, r: "15/15", wt: "—" }, { s: 3, r: "15/15", wt: "—" }] },
+      { name: "Seated Cuban Press", rest: 60, w: [{ s: 3, r: "10", wt: "20" }, { s: 3, r: "12", wt: "20" }, { s: 4, r: "8", wt: "25" }, { s: 4, r: "8", wt: "25" }, { s: 3, r: "10", wt: "30" }, { s: 3, r: "8", wt: "30" }] },
+      { name: "BFR Bis/Tris", rest: 30, bfr: true, w: [{ s: 4, r: "20/20,15/15", wt: "—" }, { s: 4, r: "20/20,15/15", wt: "—" }, { s: 4, r: "20/20,15/15", wt: "—" }, { s: 4, r: "20/20,15/15", wt: "—" }, { s: 4, r: "20/20,15/15", wt: "—" }, { s: 4, r: "20/20,15/15", wt: "—" }] }
+    ]
+  };
+
+  const days = { lower1: "Lower 1", upper1: "Upper 1", lower2: "Lower 2", upper2: "Upper 2" };
+  
+  const calculateNextWeight = (exName, currentWeek) => {
+    if (currentWeek >= 6) return null;
+    
+    const ex = data[day].find(e => e.name === exName);
+    if (!ex) return null;
+    
+    const wd = ex.w[currentWeek - 1];
+    let totalWeight = 0;
+    let count = 0;
+    let totalRpe = 0;
+    let rpeCount = 0;
+    
+    for (let i = 1; i <= wd.s; i++) {
+      const weightVal = weights[`${currentWeek}-${day}-${exName}-${i}`];
+      const rpeVal = rpe[`${currentWeek}-${day}-${exName}-${i}`];
+      
+      if (weightVal) {
+        const num = parseFloat(weightVal);
+        if (!isNaN(num)) {
+          totalWeight += num;
+          count++;
+        }
+      }
+      
+      if (rpeVal) {
+        totalRpe += rpeVal;
+        rpeCount++;
+      }
+    }
+    
+    if (count === 0) return null;
+    
+    const avgWeight = totalWeight / count;
+    const avgRpe = rpeCount > 0 ? totalRpe / rpeCount : 7;
+    
+    let increment = 5;
+    if (avgRpe < 6) increment = 10;
+    else if (avgRpe < 7.5) increment = 7.5;
+    else if (avgRpe < 8.5) increment = 5;
+    else if (avgRpe < 9.5) increment = 2.5;
+    else increment = 0;
+    
+    return avgWeight + increment;
+  };
+  
+  const getAvgRpe = (exName, wk) => {
+    const ex = data[day].find(e => e.name === exName);
+    if (!ex) return 7;
+    
+    const wd = ex.w[wk - 1];
+    let sum = 0;
+    let count = 0;
+    
+    for (let i = 1; i <= wd.s; i++) {
+      const rpeVal = rpe[`${wk}-${day}-${exName}-${i}`];
+      if (rpeVal) {
+        sum += rpeVal;
+        count++;
+      }
+    }
+    
+    return count > 0 ? sum / count : 7;
+  };
+  
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  const startTimer = (restTime) => {
+    setTimer(0);
+    setTargetRest(restTime);
+    setTimerRunning(true);
+  };
+  
+  const stopTimer = () => {
+    setTimerRunning(false);
+  };
+  
+  const resetTimer = () => {
+    setTimer(0);
+    setTimerRunning(false);
+  };
+
+  const exs = data[day];
+  const done = exs.filter(ex => {
+    const wd = ex.w[week - 1];
+    return Array.from({length: wd.s}, (_, i) => i + 1).every(n => sets[`${week}-${day}-${ex.name}-${n}`]);
+  }).length;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white pb-32">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sticky top-0 z-10">
+        <h1 className="text-2xl font-bold text-center mb-3">💪 Gym Tracker Pro</h1>
+        
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <button onClick={() => setWeek(Math.max(1, week - 1))} disabled={week === 1}
+            className="bg-white/20 p-2 rounded-lg hover:bg-white/30 disabled:opacity-50">
+            <Minus size={20} />
+          </button>
+          <span className="text-xl font-semibold min-w-[100px] text-center">Week {week}</span>
+          <button onClick={() => setWeek(Math.min(6, week + 1))} disabled={week === 6}
+            className="bg-white/20 p-2 rounded-lg hover:bg-white/30 disabled:opacity-50">
+            <Plus size={20} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
+          {Object.keys(days).map(d => (
+            <button key={d} onClick={() => setDay(d)}
+              className={`py-2 px-1 rounded-lg text-sm font-medium ${day === d ? 'bg-white text-blue-600' : 'bg-white/20'}`}>
+              {days[d]}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 text-center text-sm">
+          <div className="bg-white/20 rounded-full h-2">
+            <div className="bg-green-400 h-full transition-all" style={{width: `${(done/exs.length)*100}%`}} />
+          </div>
+          <p className="mt-1">{done} / {exs.length} done</p>
+        </div>
+      </div>
+
+      {/* Rest Timer */}
+      <div className="sticky top-[180px] z-10 mx-4 mt-4 bg-gray-800 rounded-xl p-4 border-2 border-blue-500">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock size={24} className="text-blue-400" />
+            <div>
+              <p className="text-sm text-gray-400">Rest Timer</p>
+              <p className={`text-2xl font-bold ${timer >= targetRest ? 'text-green-400' : 'text-white'}`}>
+                {formatTime(timer)} / {formatTime(targetRest)}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {!timerRunning ? (
+              <button onClick={() => setTimerRunning(true)} className="bg-green-500 p-3 rounded-lg hover:bg-green-600">
+                <Play size={20} />
+              </button>
+            ) : (
+              <button onClick={stopTimer} className="bg-yellow-500 p-3 rounded-lg hover:bg-yellow-600">
+                <Pause size={20} />
+              </button>
+            )}
+            <button onClick={resetTimer} className="bg-red-500 p-3 rounded-lg hover:bg-red-600">
+              <RotateCcw size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3 mt-4">
+        {exs.map((ex, i) => {
+          const wd = ex.w[week - 1];
+          const exp = open === i;
+          const complete = Array.from({length: wd.s}, (_, j) => j + 1).every(n => sets[`${week}-${day}-${ex.name}-${n}`]);
+          const currentWeight = weights[`${week}-${day}-${ex.name}`];
+          const currentChains = chains[`${week}-${day}-${ex.name}`];
+          const currentIncline = incline[`${week}-${day}-${ex.name}`];
+          const nextWeight = calculateNextWeight(ex.name, week);
+          const avgRpeScore = getAvgRpe(ex.name, week);
+
+          return (
+            <div key={i} className={`bg-gray-800 rounded-xl border-2 ${complete ? 'border-green-500' : 'border-gray-700'} 
+              ${ex.bfr ? 'bg-gradient-to-r from-purple-900/30 to-gray-800' : ''}`}>
+              <button onClick={() => setOpen(exp ? null : i)}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-700/50">
+                <div className="flex-1 text-left">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg">{ex.name}</h3>
+                    {ex.bfr && <span className="text-xs bg-purple-500 px-2 py-1 rounded-full">BFR</span>}
+                    {complete && <Check className="text-green-400" size={20} />}
+                  </div>
+                  <p className="text-sm text-gray-400 mt-1">{wd.s} × {wd.r} @ {wd.wt}</p>
+                  {(Object.keys(weights).some(k => k.startsWith(`${week}-${day}-${ex.name}-`)) || currentChains || currentIncline) && (
+                    <div className="mt-2 space-y-1">
+                      {Object.keys(weights).filter(k => k.startsWith(`${week}-${day}-${ex.name}-`)).map(key => {
+                        const setNum = key.split('-')[3];
+                        const wt = weights[key];
+                        return wt ? <p key={key} className="text-sm font-semibold text-blue-400">Set {setNum}: {wt} lbs</p> : null;
+                      })}
+                      {ex.hasChains && currentChains && (
+                        <p className="text-sm font-semibold text-purple-400">⛓️ {currentChains} chains/side</p>
+                      )}
+                      {ex.hasIncline && currentIncline && (
+                        <p className="text-sm font-semibold text-orange-400">📐 {currentIncline}° incline</p>
+                      )}
+                      {nextWeight && week < 6 && (
+                        <p className="text-sm text-green-400">
+                          📈 Next week: ~{nextWeight.toFixed(1)} lbs {avgRpeScore > 0 && `(avg RPE: ${avgRpeScore.toFixed(1)})`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    <Clock size={12} className="inline mr-1" />
+                    Rest: {ex.rest}s
+                  </p>
+                </div>
+                {exp ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+              </button>
+
+              {exp && (
+                <div className="p-4 pt-0 space-y-3 border-t border-gray-700">
+                  {ex.hasChains && (
+                    <div>
+                      <label className="text-sm text-gray-400 block mb-1">Chains Used:</label>
+                      <select
+                        value={chains[`${week}-${day}-${ex.name}`] || ''}
+                        onChange={(e) => setChains({...chains, [`${week}-${day}-${ex.name}`]: e.target.value})}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white">
+                        <option value="">Select chains</option>
+                        <option value="1">1 Chain per side</option>
+                        <option value="2">2 Chains per side</option>
+                        <option value="3">3 Chains per side</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {ex.hasIncline && (
+                    <div>
+                      <label className="text-sm text-gray-400 block mb-1">Bench Incline:</label>
+                      <select
+                        value={incline[`${week}-${day}-${ex.name}`] || ''}
+                        onChange={(e) => setIncline({...incline, [`${week}-${day}-${ex.name}`]: e.target.value})}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white">
+                        <option value="">Select incline</option>
+                        {[0, 5, 10, 15, 20, 25, 30, 35].map(deg => (
+                          <option key={deg} value={deg}>{deg}° incline</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-400">Sets:</p>
+                      <button 
+                        onClick={() => startTimer(ex.rest)}
+                        className="text-xs bg-blue-600 px-3 py-1 rounded-full hover:bg-blue-700 flex items-center gap-1">
+                        <Clock size={12} />
+                        Start {ex.rest}s Rest
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {Array.from({length: wd.s}, (_, j) => j + 1).map(n => {
+                        const isComplete = sets[`${week}-${day}-${ex.name}-${n}`];
+                        const weightValue = weights[`${week}-${day}-${ex.name}-${n}`];
+                        const rpeValue = rpe[`${week}-${day}-${ex.name}-${n}`];
+                        
+                        return (
+                          <div key={n} className="bg-gray-700/50 p-3 rounded-lg space-y-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setSets({...sets, [`${week}-${day}-${ex.name}-${n}`]: !isComplete});
+                                  if (!isComplete) startTimer(ex.rest);
+                                }}
+                                className={`w-12 h-12 rounded-lg font-semibold flex-shrink-0 ${isComplete ? 'bg-green-500' : 'bg-gray-700'}`}>
+                                {n}
+                              </button>
+                              <div className="flex-1">
+                                <input
+                                  type="text"
+                                  value={weightValue || ''}
+                                  onChange={(e) => setWeights({...weights, [`${week}-${day}-${ex.name}-${n}`]: e.target.value})}
+                                  placeholder={`Set ${n} weight`}
+                                  className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm"
+                                />
+                              </div>
+                            </div>
+                            {isComplete && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-400 whitespace-nowrap">RPE:</span>
+                                <select
+                                  value={rpeValue || ''}
+                                  onChange={(e) => setRpe({...rpe, [`${week}-${day}-${ex.name}-${n}`]: parseFloat(e.target.value)})}
+                                  className="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm">
+                                  <option value="">Select RPE</option>
+                                  {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(val => (
+                                    <option key={val} value={val}>RPE {val}</option>
+                                  ))}
+                                </select>
+                                {rpeValue && (
+                                  <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                                    rpeValue < 7 ? 'bg-green-600' :
+                                    rpeValue < 8.5 ? 'bg-yellow-600' : 'bg-red-600'
+                                  }`}>
+                                    {rpeValue < 7 ? 'Easy' : rpeValue < 8.5 ? 'Moderate' : 'Hard'}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="text-sm bg-gray-700/50 p-3 rounded-lg space-y-1">
+                    <p><strong>Target:</strong> {wd.s} × {wd.r}</p>
+                    <p><strong>Suggested:</strong> {wd.wt}</p>
+                    {ex.hasChains && chains[`${week}-${day}-${ex.name}`] && (
+                      <p><strong>Chains:</strong> {chains[`${week}-${day}-${ex.name}`]} per side</p>
+                    )}
+                    {ex.hasIncline && incline[`${week}-${day}-${ex.name}`] && (
+                      <p><strong>Incline:</strong> {incline[`${week}-${day}-${ex.name}`]}°</p>
+                    )}
+                    <p><strong>Rest:</strong> {ex.rest}s ({Math.floor(ex.rest/60)}:{(ex.rest%60).toString().padStart(2,'0')})</p>
+                    {avgRpeScore > 0 && (
+                      <p><strong>Avg RPE:</strong> {avgRpeScore.toFixed(1)}/10</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="p-4">
+        <div className="bg-gray-800 rounded-xl p-4">
+          <label className="text-sm text-gray-400 block mb-2">Session Notes:</label>
+          <textarea value={notes[`${week}-${day}`] || ''}
+            onChange={(e) => setNotes({...notes, [`${week}-${day}`]: e.target.value})}
+            placeholder="How did today feel? Energy, sleep, recovery notes..."
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white min-h-[100px]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GymTracker />);
+    </script>
+</body>
+</html>
